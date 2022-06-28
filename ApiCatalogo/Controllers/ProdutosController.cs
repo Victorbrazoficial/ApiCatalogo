@@ -53,7 +53,7 @@ namespace ApiCatalogo.Controllers
         [HttpPut("{id:int}")]
         public ActionResult PutProduto(int id, Produto produto)
         {
-            if (produto.ProdutoId != id)
+            if (id != produto.ProdutoId)
                 return BadRequest();
 
             _context.Entry(produto).State = EntityState.Modified;
