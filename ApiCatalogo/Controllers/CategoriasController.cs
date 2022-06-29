@@ -17,12 +17,12 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("Produtos")]
-        public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos()
+        public async Task<ActionResult<IEnumerable<Categoria>>> GetCategoriasProdutos()
         {
             try
             {
-                var categoriasProdutos = _context.Categorias.Include(p => p.Produtos)
-                                            .Where(c => c.CategoriaId <= 5).ToList();
+                var categoriasProdutos = await _context.Categorias.Include(p => p.Produtos)
+                                            .Where(c => c.CategoriaId <= 5).ToListAsync();
 
                 return Ok(categoriasProdutos);
             }
@@ -34,11 +34,11 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Categoria>> GetCategorias()
+        public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
         {
             try
             {
-                var categorias = _context.Categorias.Take(10).AsNoTracking().ToList();
+                var categorias = await _context.Categorias.Take(10).AsNoTracking().ToListAsync();
 
                 if (categorias is null)
                     return NotFound("Categorias não encontradas");
@@ -53,12 +53,12 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("{id:int}", Name = "ObeterCategoria")]
-        public ActionResult<Categoria> GetCategoriaPorId(int id)
+        public async Task<ActionResult<Categoria>> GetCategoriaPorId(int id)
         {
             try
             {
-                var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
-            
+                var categoria = await _context.Categorias.FirstOrDefaultAsync(c => c.CategoriaId == id);
+          
                 if (categoria is null)
                     return NotFound("Categoria não encontrada.");
 
@@ -123,7 +123,7 @@ namespace ApiCatalogo.Controllers
 
                 _context.Remove(categoria);
                 _context.SaveChanges();
-
+                 
                 return Ok(categoria);
             }
             catch (Exception)

@@ -17,11 +17,11 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Produto>> GetListaDeProdutos()
+        public async Task<ActionResult<IEnumerable<Produto>>> GetListaDeProdutos()
         {
             try
             {
-                var produtos = _context.Produtos.Take(10).AsNoTracking().ToList();
+                var produtos = await _context.Produtos.Take(10).AsNoTracking().ToListAsync();
 
                 if (produtos is null)
                     return NotFound("Produtos não encontrado");
@@ -36,11 +36,11 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("{id:int}", Name = "ObterProduto")]
-        public ActionResult<Produto> GetProdutosPorId(int id)
+        public async Task<ActionResult<Produto>> GetProdutosPorId(int id)
         {
             try
             {
-                var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+                var produto = await _context.Produtos.FirstOrDefaultAsync(p => p.ProdutoId == id);
 
                 if (produto is null)
                     return NotFound("Produto não encontrado");
