@@ -1,4 +1,5 @@
 using ApiCatalogo.Context;
+using ApiCatalogo.Filters;
 using ApiCatalogo.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -6,11 +7,13 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddScoped<ApiLoggingFilter>();
+
 builder.Services.AddControllers()
         .AddJsonOptions(options => options.JsonSerializerOptions.
             ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
-builder.Services.AddTransient<IMeuServico, MeuServico>();
+builder.Services.AddTransient<IMeuServico, MeuServico>();  
 
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

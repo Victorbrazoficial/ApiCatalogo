@@ -1,4 +1,5 @@
 ﻿using ApiCatalogo.Context;
+using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,13 +11,16 @@ namespace ApiCatalogo.Controllers
     public class ProdutosController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<ProdutosController> _logger;
 
-        public ProdutosController(AppDbContext context)
+        public ProdutosController(AppDbContext context, ILogger<ProdutosController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet]
+        [ServiceFilter(typeof(ApiLoggingFilter))]
         public async Task<ActionResult<IEnumerable<Produto>>> GetListaDeProdutos()
         {
             try
@@ -25,6 +29,11 @@ namespace ApiCatalogo.Controllers
 
                 if (produtos is null)
                     return NotFound("Produtos não encontrado");
+
+                _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                   nameof(ProdutosController),
+                   nameof(ProdutosController.GetListaDeProdutos),
+                   "none");
 
                 return produtos;
             }
@@ -44,6 +53,11 @@ namespace ApiCatalogo.Controllers
 
                 if (produto is null)
                     return NotFound("Produto não encontrado");
+
+                 _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                    nameof(ProdutosController),
+                    nameof(ProdutosController.GetProdutosPorId),
+                    id);
 
                 return produto;
             }
@@ -65,7 +79,12 @@ namespace ApiCatalogo.Controllers
                 _context.Produtos.Add(produto);
                 _context.SaveChanges();
 
-            return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
+                _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                   nameof(ProdutosController),
+                   nameof(ProdutosController.PostProduto),
+                   produto);
+
+                return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
             }
             catch (Exception)
             {
@@ -84,6 +103,11 @@ namespace ApiCatalogo.Controllers
 
                 _context.Entry(produto).State = EntityState.Modified;
                 _context.SaveChanges();
+
+                _logger.LogInformation("{class} - {method} - Request '{@request} - Request 2 {@request}'",
+                   nameof(ProdutosController),
+                   nameof(ProdutosController.PutProduto),
+                   id, produto);
 
                 return Ok(produto);
             }
@@ -106,6 +130,11 @@ namespace ApiCatalogo.Controllers
 
                 _context.Produtos.Remove(produto);
                 _context.SaveChanges();
+
+                _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                   nameof(ProdutosController),
+                   nameof(ProdutosController.DeleteProduto),
+                   id);
 
                 return Ok(produto);
             }
