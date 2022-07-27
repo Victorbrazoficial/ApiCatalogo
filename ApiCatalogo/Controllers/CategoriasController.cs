@@ -11,10 +11,12 @@ namespace ApiCatalogo.Controllers
     public class CategoriasController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<CategoriasController> _logger;
 
-        public CategoriasController(AppDbContext context)
+        public CategoriasController(AppDbContext context, ILogger<CategoriasController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet("saudacoes/{nome}")]
@@ -23,8 +25,6 @@ namespace ApiCatalogo.Controllers
             return meuServico.Saudacao(nome);
         }
 
-
-
         [HttpGet("Produtos")]
         public async Task<ActionResult<IEnumerable<Categoria>>> GetCategoriasProdutos()
         {
@@ -32,6 +32,11 @@ namespace ApiCatalogo.Controllers
             {
                 var categoriasProdutos = await _context.Categorias.Include(p => p.Produtos)
                                             .Where(c => c.CategoriaId <= 5).ToListAsync();
+
+                _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                   nameof(CategoriasController),
+                   nameof(CategoriasController.GetCategoriasProdutos),
+                   "none");
 
                 return Ok(categoriasProdutos);
             }
@@ -52,6 +57,11 @@ namespace ApiCatalogo.Controllers
                 if (categorias is null)
                     return NotFound("Categorias não encontradas");
 
+                _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                   nameof(CategoriasController),
+                   nameof(CategoriasController.GetCategorias),
+                   "none");
+
                 return Ok(categorias);
             }
             catch (Exception)
@@ -70,6 +80,11 @@ namespace ApiCatalogo.Controllers
           
                 if (categoria is null)
                     return NotFound("Categoria não encontrada.");
+
+                _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                   nameof(CategoriasController),
+                   nameof(CategoriasController.GetCategoriaPorId),
+                   id);
 
                 return categoria;
             }
@@ -91,6 +106,11 @@ namespace ApiCatalogo.Controllers
                 _context.Categorias.Add(categoria);
                 _context.SaveChanges();
 
+                _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                   nameof(CategoriasController),
+                   nameof(CategoriasController.PostCategoria),
+                   categoria);
+
                 return new CreatedAtRouteResult("ObeterCategoria", new { id = categoria.CategoriaId }, categoria);
             }
             catch (Exception)
@@ -110,6 +130,11 @@ namespace ApiCatalogo.Controllers
 
                 _context.Entry(categoria).State = EntityState.Modified;
                 _context.SaveChanges();
+
+                _logger.LogInformation("{class} - {method} - Request '{@request} - Request 2 {@request}'",
+                   nameof(CategoriasController),
+                   nameof(CategoriasController.PutCategoria),
+                   id, categoria);
 
                 return Ok(categoria);
             }
@@ -132,7 +157,12 @@ namespace ApiCatalogo.Controllers
 
                 _context.Remove(categoria);
                 _context.SaveChanges();
-                 
+
+                _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                   nameof(CategoriasController),
+                   nameof(CategoriasController.PostCategoria),
+                   id);
+
                 return Ok(categoria);
             }
             catch (Exception)
