@@ -1,4 +1,5 @@
 using ApiCatalogo.Context;
+using ApiCatalogo.Extensions;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Services;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.ConfigureExeptionHandler();
 
 app.UseHttpsRedirection();
 
