@@ -1,6 +1,7 @@
 ﻿using ApiCatalogo.Context;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
+using ApiCatalogo.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,12 +11,12 @@ namespace ApiCatalogo.Controllers
     [ApiController]
     public class ProdutosController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IUnitOfWork _uof;
         private readonly ILogger<ProdutosController> _logger;
 
-        public ProdutosController(AppDbContext context, ILogger<ProdutosController> logger)
+        public ProdutosController(IUnitOfWork uof, ILogger<ProdutosController> logger)
         {
-            _context = context;
+            _uof = uof;
             _logger = logger;
         }
 
@@ -25,7 +26,7 @@ namespace ApiCatalogo.Controllers
         {
             try
             {
-                var produtos = _context.Produtos.Take(10).AsNoTracking().ToList();
+                var produtos = _uof.ProdutoRepository.Get().ToList();
 
                 if (produtos is null)
                     return NotFound("Produtos não encontrado");
@@ -49,7 +50,7 @@ namespace ApiCatalogo.Controllers
         {
             try
             {
-                var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+                var produto = _uof.ProdutoRepository.GetById(p => p.ProdutoId == id);
 
                 if (produto is null)
                     return NotFound("Produto não encontrado");
@@ -68,6 +69,30 @@ namespace ApiCatalogo.Controllers
             }
         }
 
+        [HttpGet("menorpreco")]
+        public ActionResult<Produto> GetProdutosPreco()
+        {
+            try
+            {
+                var produto = _uof.ProdutoRepository.GetProdutoPorPreco();
+
+                if (produto is null)
+                    return NotFound("Produto não encontrado");
+
+                _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                   nameof(ProdutosController),
+                   nameof(ProdutosController.GetProdutosPreco), 
+                   "none");
+
+                return Ok(produto);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                        "Ocorreu um problema ao tratar a sua solicitação.");
+            }
+        }
+
         [HttpPost]
         public ActionResult PostProduto(Produto produto)
         {
@@ -76,8 +101,8 @@ namespace ApiCatalogo.Controllers
                 if (produto is null)
                     return BadRequest();
 
-                _context.Produtos.Add(produto);
-                _context.SaveChanges();
+                _uof.ProdutoRepository.Add(produto);
+                _uof.Commit();
 
                 _logger.LogInformation("{class} - {method} - Request '{@request}'",
                    nameof(ProdutosController),
@@ -101,8 +126,8 @@ namespace ApiCatalogo.Controllers
                 if (id != produto.ProdutoId)
                     return BadRequest();
 
-                _context.Entry(produto).State = EntityState.Modified;
-                _context.SaveChanges();
+                _uof.ProdutoRepository.Update(produto);
+                _uof.Commit();
 
                 _logger.LogInformation("{class} - {method} - Request '{@request} - Request 2 {@request}'",
                    nameof(ProdutosController),
@@ -123,13 +148,13 @@ namespace ApiCatalogo.Controllers
         {
             try 
             {
-                var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+                var produto = _uof.ProdutoRepository.GetById(p => p.ProdutoId == id);
 
                 if (produto is null)
                     return NotFound("Produto não encontrado");
 
-                _context.Produtos.Remove(produto);
-                _context.SaveChanges();
+                _uof.ProdutoRepository.Delete(produto);
+                _uof.Commit();
 
                 _logger.LogInformation("{class} - {method} - Request '{@request}'",
                    nameof(ProdutosController),
