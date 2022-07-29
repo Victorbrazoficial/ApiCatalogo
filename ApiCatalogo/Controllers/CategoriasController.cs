@@ -1,8 +1,7 @@
-﻿using ApiCatalogo.Context;
-using ApiCatalogo.Models;
+﻿using ApiCatalogo.Models;
+using ApiCatalogo.Repository;
 using ApiCatalogo.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ApiCatalogo.Controllers
 {
@@ -10,13 +9,14 @@ namespace ApiCatalogo.Controllers
     [ApiController]
     public class CategoriasController : ControllerBase
     {
-        private readonly AppDbContext _context;
+
+        private readonly IUnitOfWork _uof;
         private readonly ILogger<CategoriasController> _logger;
 
-        public CategoriasController(AppDbContext context, ILogger<CategoriasController> logger)
+        public CategoriasController(IUnitOfWork uof, ILogger<CategoriasController> logger)
         {
-            _context = context;
-            _logger = logger;
+            _uof = uof;
+            _logger = logger;  
         }
 
         [HttpGet("saudacoes/{nome}")]
@@ -30,8 +30,7 @@ namespace ApiCatalogo.Controllers
         {
             try
             {
-                var categoriasProdutos = _context.Categorias.Include(p => p.Produtos)
-                                            .Where(c => c.CategoriaId <= 5).ToList();
+                var categoriasProdutos = _uof.CategoriaRepository.GetCategoriasProdutos();
 
                 _logger.LogInformation("{class} - {method} - Request '{@request}'",
                    nameof(CategoriasController),
@@ -52,7 +51,7 @@ namespace ApiCatalogo.Controllers
         {
             try
             {
-                var categorias = _context.Categorias.Take(10).AsNoTracking().ToList();
+                var categorias = _uof.CategoriaRepository.Get().ToList();
 
                 if (categorias is null)
                     return NotFound("Categorias não encontradas");
@@ -76,7 +75,7 @@ namespace ApiCatalogo.Controllers
         {
             try
             {
-                var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
+                var categoria = _uof.CategoriaRepository.GetById(c => c.CategoriaId == id);
           
                 if (categoria is null)
                     return NotFound("Categoria não encontrada.");
@@ -103,8 +102,8 @@ namespace ApiCatalogo.Controllers
                 if (categoria is null)
                     return BadRequest("Categoria não encontrada.");
 
-                _context.Categorias.Add(categoria);
-                _context.SaveChanges();
+                _uof.CategoriaRepository.Add(categoria);
+                _uof.Commit();
 
                 _logger.LogInformation("{class} - {method} - Request '{@request}'",
                    nameof(CategoriasController),
@@ -128,8 +127,8 @@ namespace ApiCatalogo.Controllers
                 if (id != categoria.CategoriaId)
                     return BadRequest("Categoria não encontrada.");
 
-                _context.Entry(categoria).State = EntityState.Modified;
-                _context.SaveChanges();
+                _uof.CategoriaRepository.Update(categoria);
+                _uof.Commit();
 
                 _logger.LogInformation("{class} - {method} - Request '{@request} - Request 2 {@request}'",
                    nameof(CategoriasController),
@@ -150,13 +149,13 @@ namespace ApiCatalogo.Controllers
         {
             try 
             {
-                var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
+                var categoria = _uof.CategoriaRepository.GetById(c => c.CategoriaId == id);
 
                 if (categoria is null)
                     return NotFound("Categoria não encontrada");
 
-                _context.Remove(categoria);
-                _context.SaveChanges();
+                _uof.CategoriaRepository.Delete(categoria);
+                _uof.Commit();
 
                 _logger.LogInformation("{class} - {method} - Request '{@request}'",
                    nameof(CategoriasController),
