@@ -93,6 +93,30 @@ namespace ApiCatalogo.Controllers
             }
         }
 
+        [HttpGet("menorestoque")]
+        public ActionResult<Produto> GetProdutosEstoque()
+        {
+            try
+            {
+                var produto = _uof.ProdutoRepository.GetProdutoPorEstoque();
+
+                if (produto is null)
+                    return NotFound("Produto não encontrado");
+
+                _logger.LogInformation("{class} - {method} - Request '{@request}'",
+                   nameof(ProdutosController),
+                   nameof(ProdutosController.GetProdutosEstoque),
+                   "none");
+
+                return Ok(produto);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                        "Ocorreu um problema ao tratar a sua solicitação.");
+            }
+        }
+
         [HttpPost]
         public ActionResult PostProduto(Produto produto)
         {

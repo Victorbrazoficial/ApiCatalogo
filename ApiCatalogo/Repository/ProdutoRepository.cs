@@ -9,6 +9,11 @@ namespace ApiCatalogo.Repository
         {
         }
 
+        public IEnumerable<Produto> GetProdutoPorEstoque()
+        {
+            return Get().OrderBy(p => p.Estoque).ToList();
+        }
+
         public IEnumerable<Produto> GetProdutoPorPreco()
         {
             return Get().OrderBy(p => p.Preco).ToList();

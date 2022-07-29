@@ -5,6 +5,7 @@ namespace ApiCatalogo.Repository
 {
     public interface IProdutoRepository : IRepository<Produto>
     {
-        IEnumerable<Produto> GetProdutoPorPreco();
+        public IEnumerable<Produto> GetProdutoPorPreco();
+        public IEnumerable<Produto> GetProdutoPorEstoque();
     }
 }
