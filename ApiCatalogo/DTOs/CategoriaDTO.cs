@@ -8,6 +8,6 @@ namespace ApiCatalogo.DTOs
         public int CategoriaId { get; set; }
         public string? Nome { get; set; }
         public string? ImagemUrl { get; set; }
-        public ICollection<Produto>? Produtos { get; set; } 
+        public ICollection<ProdutoDTO>? Produtos { get; set; } 
     }
 }
