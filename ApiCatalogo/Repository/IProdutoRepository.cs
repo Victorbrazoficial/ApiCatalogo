@@ -1,11 +1,11 @@
 ﻿using ApiCatalogo.Models;
-using Microsoft.AspNetCore.Mvc;
+using ApiCatalogo.Pagination;
 
 namespace ApiCatalogo.Repository
 {
     public interface IProdutoRepository : IRepository<Produto>
     {
-        public IEnumerable<Produto> GetProdutoPorPreco();
-        public IEnumerable<Produto> GetProdutoPorNome();
+        public PagedList<Produto> GetProdutos(ProdutosParameters produtosParameters);
+        public IEnumerable<Produto> GetProdutoPorPreco(ProdutosParameters produtosParameters);
     }
 }

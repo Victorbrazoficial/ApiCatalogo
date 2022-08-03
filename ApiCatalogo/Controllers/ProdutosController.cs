@@ -2,10 +2,12 @@
 using ApiCatalogo.DTOs;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
 using ApiCatalogo.Repository;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace ApiCatalogo.Controllers
 {
@@ -26,11 +28,21 @@ namespace ApiCatalogo.Controllers
 
         [HttpGet]
         [ServiceFilter(typeof(ApiLoggingFilter))]
-        public ActionResult<IEnumerable<ProdutoDTO>> GetListaDeProdutos()
+        public ActionResult<IEnumerable<ProdutoDTO>> GetListaDeProdutos([FromQuery] ProdutosParameters produtosParameters)
         {
             try
             {
-                var produtos = _uof.ProdutoRepository.Get().ToList();
+                var produtos = _uof.ProdutoRepository.GetProdutos(produtosParameters);
+
+                var metadata = new 
+                {
+                    produtos.TotalCount,
+                    produtos.PageSize,
+                    produtos.CurrentPage,
+                    produtos.TotalPages,
+                    produtos.HasNext,
+                    produtos.HasPrevious
+                };
 
                 if (produtos is null)
                     return NotFound("Produtos não encontrado");
@@ -39,6 +51,8 @@ namespace ApiCatalogo.Controllers
                    nameof(ProdutosController),
                    nameof(ProdutosController.GetListaDeProdutos),
                    "none");
+
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));  
 
                 var produtosDTO = _mapper.Map<List<ProdutoDTO>>(produtos);
                
@@ -78,11 +92,11 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("menorpreco")]
-        public ActionResult<ProdutoDTO> GetProdutosPreco()
+        public ActionResult<ProdutoDTO> GetProdutosPreco([FromQuery] ProdutosParameters produtosParameters)
         {
             try
             {
-                var produto = _uof.ProdutoRepository.GetProdutoPorPreco();
+                var produto = _uof.ProdutoRepository.GetProdutoPorPreco(produtosParameters);
 
                 if (produto is null)
                     return NotFound("Produto não encontrado");
@@ -90,31 +104,6 @@ namespace ApiCatalogo.Controllers
                 _logger.LogInformation("{class} - {method} - Request '{@request}'",
                    nameof(ProdutosController),
                    nameof(ProdutosController.GetProdutosPreco), 
-                   "none");
-
-                var produtosDTO = _mapper.Map<List<ProdutoDTO>>(produto);
-                return Ok(produtosDTO);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                        "Ocorreu um problema ao tratar a sua solicitação.");
-            }
-        }
-
-        [HttpGet("ordemalfabetica")]
-        public ActionResult<Produto> GetProdutosNome()
-        {
-            try
-            {
-                var produto = _uof.ProdutoRepository.GetProdutoPorNome();
-
-                if (produto is null)
-                    return NotFound("Produto não encontrado");
-
-                _logger.LogInformation("{class} - {method} - Request '{@request}'",
-                   nameof(ProdutosController),
-                   nameof(ProdutosController.GetProdutosNome),
                    "none");
 
                 var produtosDTO = _mapper.Map<List<ProdutoDTO>>(produto);

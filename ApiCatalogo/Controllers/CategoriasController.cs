@@ -1,9 +1,11 @@
 ﻿using ApiCatalogo.DTOs;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
 using ApiCatalogo.Repository;
 using ApiCatalogo.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace ApiCatalogo.Controllers
 {
@@ -30,16 +32,28 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("Produtos")]
-        public ActionResult<IEnumerable<CategoriaDTO>> GetCategoriasProdutos()
+        public ActionResult<IEnumerable<CategoriaDTO>> GetCategoriasProdutos([FromQuery] CategoriaParameters categoriaParameters)
         {
             try
             {
-                var categoriasProdutos = _uof.CategoriaRepository.GetCategoriasProdutos();
+                var categoriasProdutos = _uof.CategoriaRepository.GetCategoriasProdutos(categoriaParameters);
+
+                var metadata = new 
+                {
+                    categoriasProdutos.TotalCount,
+                    categoriasProdutos.PageSize,
+                    categoriasProdutos.CurrentPage,
+                    categoriasProdutos.TotalPages,
+                    categoriasProdutos.HasNext,
+                    categoriasProdutos.HasPrevious
+                };
 
                 _logger.LogInformation("{class} - {method} - Request '{@request}'",
                    nameof(CategoriasController),
                    nameof(CategoriasController.GetCategoriasProdutos),
                    "none");
+
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
 
                 var categoriasProdutosDTO = _mapper.Map<IEnumerable<CategoriaDTO>>(categoriasProdutos);
 
@@ -53,11 +67,21 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<CategoriaDTO>> GetCategorias()
+        public ActionResult<IEnumerable<CategoriaDTO>> GetCategorias([FromQuery] CategoriaParameters categoriaParameters)
         {
             try
             {
-                var categorias = _uof.CategoriaRepository.Get().ToList();
+                var categorias = _uof.CategoriaRepository.GetCategorias(categoriaParameters);
+
+                var metadata = new 
+                {
+                    categorias.TotalCount,
+                    categorias.PageSize,
+                    categorias.CurrentPage,
+                    categorias.TotalPages,
+                    categorias.HasNext,
+                    categorias.HasPrevious
+                };
 
                 if (categorias is null)
                     return NotFound("Categorias não encontradas");
@@ -66,6 +90,8 @@ namespace ApiCatalogo.Controllers
                    nameof(CategoriasController),
                    nameof(CategoriasController.GetCategorias),
                    "none");
+
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata)); 
 
                 var categoriasDTO = _mapper.Map<IEnumerable<CategoriaDTO>>(categorias);
 
