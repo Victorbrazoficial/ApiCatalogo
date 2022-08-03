@@ -98,6 +98,16 @@ namespace ApiCatalogo.Controllers
             {
                 var produto = _uof.ProdutoRepository.GetProdutoPorPreco(produtosParameters);
 
+                var metadata = new 
+                {
+                    produto.TotalCount,
+                    produto.PageSize,
+                    produto.CurrentPage,
+                    produto.TotalPages,
+                    produto.HasNext,
+                    produto.HasPrevious
+                };
+
                 if (produto is null)
                     return NotFound("Produto não encontrado");
 
@@ -105,6 +115,8 @@ namespace ApiCatalogo.Controllers
                    nameof(ProdutosController),
                    nameof(ProdutosController.GetProdutosPreco), 
                    "none");
+
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));   
 
                 var produtosDTO = _mapper.Map<List<ProdutoDTO>>(produto);
                 return Ok(produtosDTO);
