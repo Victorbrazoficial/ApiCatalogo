@@ -184,6 +184,7 @@ namespace ApiCatalogo.Controllers
             }
         }
 
+
         [HttpDelete("{id:int}")]
         public ActionResult<CategoriaDTO> DeleteCategoria(int id)
         {
